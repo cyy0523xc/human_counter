@@ -146,7 +146,8 @@ class YOLO(object):
         draw = ImageDraw.Draw(image)
         h, w = image.height, image.width
         forbid_box = ((int(w/3), int(h*3/4)), (int(w*2/3), int(h*4/5)))
-        cv2.rectangle(image, forbid_box[0], forbid_box[1], (0, 0, 255), thickness=2)
+        # cv2.rectangle(image, forbid_box[0], forbid_box[1], (0, 0, 255), thickness=2)
+        draw.rectangle([forbid_box[0], forbid_box[1]], fill=(0, 0, 255))
 
         forbid_total = 0
         for i, c in reversed(list(enumerate(out_classes))):
