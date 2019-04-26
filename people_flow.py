@@ -101,11 +101,6 @@ class YOLO(object):
     def detect_image(self, image):
         start = timer()
 
-        # 设置禁区
-        h, w = image.shape[:2]
-        forbid_box = ((int(w/3), int(h*3/4)), (int(w*2/3), int(h*4/5)))
-        cv2.rectangle(image, forbid_box[0], forbid_box[1], (0, 0, 255), thickness=2)
-
         if self.model_image_size != (None, None):
             assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
             assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
@@ -146,7 +141,13 @@ class YOLO(object):
 
         font_cn = ImageFont.truetype(font='font/asl.otf',
                                   size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
+
+        # 设置禁区
         draw = ImageDraw.Draw(image)
+        h, w = image.height, image.width
+        forbid_box = ((int(w/3), int(h*3/4)), (int(w*2/3), int(h*4/5)))
+        cv2.rectangle(image, forbid_box[0], forbid_box[1], (0, 0, 255), thickness=2)
+
         forbid_total = 0
         for i, c in reversed(list(enumerate(out_classes))):
             predicted_class = self.class_names[c]
