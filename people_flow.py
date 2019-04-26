@@ -184,7 +184,7 @@ class YOLO(object):
         self.sess.close()
 
 
-def detect_video(yolo, video_path, output_path=""):
+def detect_video(yolo, video_path, output_path):
     import cv2
     vid = cv2.VideoCapture(video_path)
     if not vid.isOpened():
@@ -195,6 +195,7 @@ def detect_video(yolo, video_path, output_path=""):
                         int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     isOutput = True if output_path != "" else False
     if isOutput:
+        print(output_path)
         print("!!! TYPE:", type(output_path), type(video_FourCC), type(video_fps), type(video_size))
         out = cv2.VideoWriter(output_path, video_FourCC, video_fps, video_size)
     accum_time = 0
