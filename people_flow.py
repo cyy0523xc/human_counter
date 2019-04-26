@@ -169,7 +169,7 @@ class YOLO(object):
             b_center = (int((left+right)/2), bottom)
             color = self.colors[c]
             if self.check_in_box(b_center, forbid_box):
-                color = self.colors[5]
+                color = (0, 0, 255)
                 forbid_total += 1
 
             if top - label_size[1] >= 0:
@@ -187,7 +187,7 @@ class YOLO(object):
                 fill=color)
             draw.text(text_origin, label, fill=(0, 0, 0), font=font)
 
-        show_str = '  总人数：%d, 禁区人数：%d  ' % (len(out_boxes), forbid_total)
+        show_str = '  总人数：%d， 禁区人数：%d  ' % (len(out_boxes), forbid_total)
         label_size1 = draw.textsize(show_str, font_cn)
         print(label_size1)
         draw.rectangle(
