@@ -196,8 +196,9 @@ def detect_video(yolo, video_path, output_path):
     isOutput = True if output_path != "" else False
     if isOutput:
         print(output_path)
+        out_fourcc = cv2.VideoWriter_fourcc(*'XVID')
         print("!!! TYPE:", type(output_path), type(video_FourCC), type(video_fps), type(video_size))
-        out = cv2.VideoWriter(output_path, video_FourCC, video_fps, video_size)
+        out = cv2.VideoWriter(output_path, out_fourcc, video_fps, video_size)
     accum_time = 0
     curr_fps = 0
     fps = "FPS: ??"
