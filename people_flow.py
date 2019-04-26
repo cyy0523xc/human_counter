@@ -242,7 +242,7 @@ def detect_video(yolo, video_path, output_path=0):
         cv2.putText(result, text=fps, org=(3, 15), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.50, color=(255, 0, 0), thickness=2)
         height, width = result.shape[:2]
-        cv2.putText(result, 'DeeAo AI Team', (width-200, height-12),
+        cv2.putText(result, 'DeeAo AI Team', (width-230, height-12),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.0, (128, 255, 0), 2)
         # cv2.namedWindow("result", cv2.WINDOW_NORMAL)
         # cv2.imshow("result", result)
