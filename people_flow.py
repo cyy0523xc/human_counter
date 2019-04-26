@@ -146,7 +146,6 @@ class YOLO(object):
         draw = ImageDraw.Draw(image)
         h, w = image.height, image.width
         forbid_box = ((int(w/3), int(h*3/4)), (int(w*2/3), h-30))
-        # cv2.rectangle(image, forbid_box[0], forbid_box[1], (0, 0, 255), thickness=2)
         draw.rectangle([forbid_box[0], forbid_box[1]], outline=(0, 0, 255))
 
         forbid_total = 0
@@ -243,7 +242,7 @@ def detect_video(yolo, video_path, output_path=0):
         cv2.putText(result, text=fps, org=(3, 15), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.50, color=(255, 0, 0), thickness=2)
         height, width = result.shape[:2]
-        cv2.putText(result, 'DeeAo AI Team', (width-80, height-10),
+        cv2.putText(result, 'DeeAo AI Team', (width//2, height-12),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.0, (128, 255, 0), 2)
         # cv2.namedWindow("result", cv2.WINDOW_NORMAL)
         # cv2.imshow("result", result)
