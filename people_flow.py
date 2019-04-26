@@ -8,7 +8,7 @@
 @time: 2018/7/9 14:52
 """
 
-
+import cv2
 import colorsys
 from timeit import default_timer as timer
 
@@ -93,8 +93,18 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
+    def check_in_box(point, box):
+        x, y = point
+        (x1, y1), (x2, y2) = box
+        return x1 < x < x2 and y1 < y < y2
+
     def detect_image(self, image):
         start = timer()
+
+        # 设置禁区
+        h, w = image.shape[:2]
+        forbid_box = ((int(w/3), int(h*3/4)), (int(w*2/3), int(h*4/5)))
+        cv2.rectangle(image, forbid_box[0], forbid_box[1], (0, 0, 255), thickness=2)
 
         if self.model_image_size != (None, None):
             assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
@@ -136,13 +146,14 @@ class YOLO(object):
 
         font_cn = ImageFont.truetype(font='font/asl.otf',
                                   size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
+        draw = ImageDraw.Draw(image)
+        forbid_total = 0
         for i, c in reversed(list(enumerate(out_classes))):
             predicted_class = self.class_names[c]
             box = out_boxes[i]
             score = out_scores[i]
 
             label = '{} {:.2f}'.format(predicted_class, score)
-            draw = ImageDraw.Draw(image)
             label_size = draw.textsize(label, font)
 
             top, left, bottom, right = box
@@ -151,6 +162,13 @@ class YOLO(object):
             bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
             right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
             print(label, (left, top), (right, bottom))
+
+            # 判断人是否在禁区
+            b_center = (int((left+right)/2), bottom)
+            color = self.colors[c]
+            if self.check_in_box(b_center, forbid_box):
+                color = self.colors['bicycle']
+                forbid_total += 1
 
             if top - label_size[1] >= 0:
                 text_origin = np.array([left, top - label_size[1]])
@@ -161,20 +179,20 @@ class YOLO(object):
             for i in range(thickness):
                 draw.rectangle(
                     [left + i, top + i, right - i, bottom - i],
-                    outline=self.colors[c])
+                    outline=color)
             draw.rectangle(
                 [tuple(text_origin), tuple(text_origin + label_size)],
-                fill=self.colors[c])
+                fill=color)
             draw.text(text_origin, label, fill=(0, 0, 0), font=font)
-            show_str = '  画面中有'+str(len(out_boxes))+'个人  '
-            label_size1 = draw.textsize(show_str, font_cn)
-            print(label_size1)
-            draw.rectangle(
-                [10, 10, 10 + label_size1[0], 10 + label_size1[1]],
-                fill=(255,255,0))
-            draw.text((10,10),show_str,fill=(0, 0, 0), font=font_cn)
 
-            del draw
+        show_str = '  总人数：%d, 禁区人数：%d  ' % (len(out_boxes), forbid_total)
+        label_size1 = draw.textsize(show_str, font_cn)
+        print(label_size1)
+        draw.rectangle(
+            [10, 10, 10 + label_size1[0], 10 + label_size1[1]],
+            fill=(255,255,0))
+        draw.text((10,10),show_str,fill=(0, 0, 0), font=font_cn)
+        del draw
 
         end = timer()
         print(end - start)
@@ -184,8 +202,7 @@ class YOLO(object):
         self.sess.close()
 
 
-def detect_video(yolo, video_path, output_path):
-    import cv2
+def detect_video(yolo, video_path, output_path=0):
     vid = cv2.VideoCapture(video_path)
     if not vid.isOpened():
         raise IOError("Couldn't open webcam or video")
@@ -199,6 +216,7 @@ def detect_video(yolo, video_path, output_path):
         out_fourcc = cv2.VideoWriter_fourcc(*'XVID')
         print("!!! TYPE:", type(output_path), type(video_FourCC), type(video_fps), type(video_size))
         out = cv2.VideoWriter(output_path, out_fourcc, video_fps, video_size)
+
     accum_time = 0
     curr_fps = 0
     fps = "FPS: ??"
