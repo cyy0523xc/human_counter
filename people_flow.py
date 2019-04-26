@@ -169,7 +169,7 @@ class YOLO(object):
             b_center = (int((left+right)/2), bottom)
             color = self.colors[c]
             if self.check_in_box(b_center, forbid_box):
-                color = self.colors['bicycle']
+                color = self.colors[5]
                 forbid_total += 1
 
             if top - label_size[1] >= 0:
