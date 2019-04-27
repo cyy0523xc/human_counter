@@ -98,7 +98,7 @@ class YOLO(object):
         (x1, y1), (x2, y2) = box
         return x1 < x < x2 and y1 < y < y2
 
-    def detect_image(self, image):
+    def detect_image(self, image, forbid_box=None):
         start = timer()
 
         if self.model_image_size != (None, None):
@@ -144,9 +144,8 @@ class YOLO(object):
 
         # 设置禁区
         draw = ImageDraw.Draw(image)
-        h, w = image.height, image.width
-        forbid_box = ((int(w/3), int(h*3/4)), (int(w*2/3), h-30))
-        draw.rectangle([forbid_box[0], forbid_box[1]], outline=(0, 0, 255))
+        if forbid_box:
+            draw.rectangle([forbid_box[0], forbid_box[1]], outline=(0, 0, 255))
 
         forbid_total = 0
         for i, c in reversed(list(enumerate(out_classes))):
@@ -167,7 +166,7 @@ class YOLO(object):
             # 判断人是否在禁区
             b_center = (int((left+right)/2), bottom)
             color = self.colors[c]
-            if self.check_in_box(b_center, forbid_box):
+            if forbid_box is not None and self.check_in_box(b_center, forbid_box):
                 color = (0, 0, 255)
                 forbid_total += 1
 
@@ -186,13 +185,17 @@ class YOLO(object):
                 fill=color)
             draw.text(text_origin, label, fill=(0, 0, 0), font=font)
 
-        show_str = '  总人数：%d， 禁区人数：%d  ' % (len(out_boxes), forbid_total)
+        if forbid_box:
+            show_str = '  视频人数：%d， 禁区人数：%d  ' % (len(out_boxes), forbid_total)
+        else:
+            show_str = '  视频人数：%d  ' % len(out_boxes)
+
         label_size1 = draw.textsize(show_str, font_cn)
         print(label_size1)
         draw.rectangle(
             [10, 10, 10 + label_size1[0], 10 + label_size1[1]],
-            fill=(255,255,0))
-        draw.text((10,10),show_str,fill=(0, 0, 0), font=font_cn)
+            fill=(255, 255, 0))
+        draw.text((10, 10), show_str, fill=(0, 0, 0), font=font_cn)
         del draw
 
         end = timer()
@@ -203,7 +206,7 @@ class YOLO(object):
         self.sess.close()
 
 
-def detect_video(yolo, video_path, output_path=0):
+def detect_video(yolo, video_path, output_path=0, forbid_box=None):
     vid = cv2.VideoCapture(video_path)
     if not vid.isOpened():
         raise IOError("Couldn't open webcam or video")
@@ -228,7 +231,11 @@ def detect_video(yolo, video_path, output_path=0):
             break
 
         image = Image.fromarray(frame)
-        image = yolo.detect_image(image)
+        if forbid_box is None:
+            h, w = image.height, image.width
+            forbid_box = ((int(w/3), int(h*3/4)), (int(w*2/3), h-30))
+
+        image = yolo.detect_image(image, forbid_box=forbid_box)
         result = np.asarray(image)
         curr_time = timer()
         exec_time = curr_time - prev_time
@@ -239,10 +246,11 @@ def detect_video(yolo, video_path, output_path=0):
             accum_time = accum_time - 1
             fps = "FPS: " + str(curr_fps)
             curr_fps = 0
+
         cv2.putText(result, text=fps, org=(3, 15), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.50, color=(255, 0, 0), thickness=2)
         height, width = result.shape[:2]
-        cv2.putText(result, 'DeeAo AI Team', (width-230, height-12),
+        cv2.putText(result, 'DeeAo AI Team', (width-250, height-12),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.0, (128, 255, 0), 2)
         # cv2.namedWindow("result", cv2.WINDOW_NORMAL)
         # cv2.imshow("result", result)
