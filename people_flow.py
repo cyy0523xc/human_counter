@@ -147,9 +147,13 @@ class YOLO(object):
         if forbid_box:
             draw.rectangle([forbid_box[0], forbid_box[1]], outline=(0, 0, 255))
 
-        forbid_total = 0
+        forbid_total, video_total = 0, 0
         for i, c in reversed(list(enumerate(out_classes))):
             score = out_scores[i]
+            if score < 0.5:    # 得分阀值，低于该得分的去掉
+                continue
+
+            video_total += 1
             # predicted_class = self.class_names[c]
             # label = '{} {:.2f}'.format(predicted_class, score)
             label = '{:.2f}'.format(score)
@@ -186,9 +190,9 @@ class YOLO(object):
             draw.text(text_origin, label, fill=(0, 0, 0), font=font)
 
         if forbid_box:
-            show_str = '  视频人数：%d， 禁区人数：%d  ' % (len(out_boxes), forbid_total)
+            show_str = '  视频人数：%d， 禁区人数：%d  ' % (video_total, forbid_total)
         else:
-            show_str = '  视频人数：%d  ' % len(out_boxes)
+            show_str = '  视频人数：%d  ' % video_total
 
         label_size1 = draw.textsize(show_str, font_cn)
         # print(label_size1)
@@ -231,7 +235,7 @@ def detect_video(yolo, video_path, output_path=0, forbid_box=None):
             break
 
         msec = int(vid.get(cv2.CAP_PROP_POS_MSEC))
-        print('当前时间进度：%.2f秒' % msec/1000)
+        print('当前时间进度：%.2f秒' % (msec/1000))
         image = Image.fromarray(frame)
         if forbid_box is None:
             h, w = image.height, image.width
