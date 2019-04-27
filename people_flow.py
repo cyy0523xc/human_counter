@@ -149,13 +149,13 @@ class YOLO(object):
 
         forbid_total = 0
         for i, c in reversed(list(enumerate(out_classes))):
-            predicted_class = self.class_names[c]
-            box = out_boxes[i]
             score = out_scores[i]
-
-            label = '{} {:.2f}'.format(predicted_class, score)
+            # predicted_class = self.class_names[c]
+            # label = '{} {:.2f}'.format(predicted_class, score)
+            label = '{:.2f}'.format(score)
             label_size = draw.textsize(label, font)
 
+            box = out_boxes[i]
             top, left, bottom, right = box
             top = max(0, np.floor(top + 0.5).astype('int32'))
             left = max(0, np.floor(left + 0.5).astype('int32'))
