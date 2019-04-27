@@ -137,7 +137,8 @@ class YOLO(object):
 
         font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
                     size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
-        thickness = (image.size[0] + image.size[1]) // 300
+        thickness = (image.size[0] + image.size[1]) // 500
+        thickness = max(thickness, 2)
 
         font_cn = ImageFont.truetype(font='font/asl.otf',
                                   size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
