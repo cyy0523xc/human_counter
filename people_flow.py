@@ -191,7 +191,7 @@ class YOLO(object):
             show_str = '  视频人数：%d  ' % len(out_boxes)
 
         label_size1 = draw.textsize(show_str, font_cn)
-        print(label_size1)
+        # print(label_size1)
         draw.rectangle(
             [10, 10, 10 + label_size1[0], 10 + label_size1[1]],
             fill=(255, 255, 0))
@@ -230,6 +230,8 @@ def detect_video(yolo, video_path, output_path=0, forbid_box=None):
         if return_value is False:
             break
 
+        msec = int(vid.get(cv2.CAP_PROP_POS_MSEC))
+        print('当前时间进度：%.2f秒' % msec/1000)
         image = Image.fromarray(frame)
         if forbid_box is None:
             h, w = image.height, image.width
