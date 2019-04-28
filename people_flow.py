@@ -28,13 +28,13 @@ gpu_num = 1
 
 
 class YOLO(object):
-    def __init__(self, score_threshold=0.3):
+    def __init__(self, score_threshold=0.3, iou_threshold=0.45):
         # model path or trained weights path
         self.model_path = 'model_data/yolo.h5'
         self.anchors_path = 'model_data/yolo_anchors.txt'
         self.classes_path = 'model_data/coco_classes.txt'
         self.score = score_threshold
-        self.iou = 0.45
+        self.iou = iou_threshold
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
         self.sess = K.get_session()
@@ -109,10 +109,9 @@ class YOLO(object):
             boxed_image = letterbox_image(image, new_image_size)
         image_data = np.array(boxed_image, dtype='float32')
 
-        print(image_data.shape)
+        # print(image_data.shape)
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
-
         out_boxes, out_scores, out_classes = self.sess.run(
             [self.boxes, self.scores, self.classes],
             feed_dict={
@@ -228,6 +227,7 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
     prev_time = timer()
     start *= 1000
     end = end if end == 0 else end*1000
+    width, height = 0, 0
     while True:
         return_value, frame = vid.read()
         if return_value is False:
@@ -261,7 +261,8 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
         cv2.putText(result, text=fps, org=(3, 15),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.50, color=(255, 0, 0), thickness=2)
-        height, width = result.shape[:2]
+        if width == 0:
+            height, width = result.shape[:2]
         cv2.putText(result, 'DeeAo AI Team', (width-250, height-12),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.0, (128, 255, 0), 2)
         # cv2.namedWindow("result", cv2.WINDOW_NORMAL)
@@ -271,6 +272,7 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+    print("width: %d, height: %d" % (width, height))
     out.release()
     yolo.close_session()
 
