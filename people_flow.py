@@ -28,12 +28,12 @@ gpu_num = 1
 
 
 class YOLO(object):
-    def __init__(self):
+    def __init__(self, score_threshold=0.3):
         # model path or trained weights path
         self.model_path = 'model_data/yolo.h5'
         self.anchors_path = 'model_data/yolo_anchors.txt'
         self.classes_path = 'model_data/coco_classes.txt'
-        self.score = 0.3
+        self.score = score_threshold
         self.iou = 0.45
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
@@ -96,7 +96,7 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image(self, image, score_threshold=0.5, forbid_box=None):
+    def detect_image(self, image, forbid_box=None):
         start = timer()
 
         if self.model_image_size != (None, None):
@@ -145,9 +145,6 @@ class YOLO(object):
         forbid_total, video_total = 0, 0
         for i, c in reversed(list(enumerate(out_classes))):
             score = out_scores[i]
-            if score < score_threshold:    # 得分阀值，低于该得分的去掉
-                continue
-
             video_total += 1
             # predicted_class = self.class_names[c]
             # label = '{} {:.2f}'.format(predicted_class, score)
@@ -206,7 +203,7 @@ class YOLO(object):
 
 
 def detect_video(yolo, video_path, output_path=0, start=0, end=0,
-                 forbid_box=None, score_threshold=0.5):
+                 forbid_box=None):
     vid = cv2.VideoCapture(video_path)
     if not vid.isOpened():
         raise IOError("Couldn't open webcam or video")
@@ -244,8 +241,7 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
 
         print('当前时间进度：%.2f秒' % (msec/1000))
         image = Image.fromarray(frame)
-        image = yolo.detect_image(image, forbid_box=forbid_box_path,
-                                  score_threshold=score_threshold)
+        image = yolo.detect_image(image, forbid_box=forbid_box_path)
         result = np.asarray(image)
         curr_time = timer()
         exec_time = curr_time - prev_time
