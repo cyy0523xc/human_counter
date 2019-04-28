@@ -229,12 +229,19 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
     curr_fps = 0
     fps = "FPS: ??"
     prev_time = timer()
+    start *= 1000
+    end = end if end == 0 else end*1000
     while True:
         return_value, frame = vid.read()
         if return_value is False:
             break
 
         msec = int(vid.get(cv2.CAP_PROP_POS_MSEC))
+        if msec < start:
+            continue
+        if end > 0 and msec > end:
+            break
+
         print('当前时间进度：%.2f秒' % (msec/1000))
         image = Image.fromarray(frame)
         image = yolo.detect_image(image, forbid_box=forbid_box_path)
