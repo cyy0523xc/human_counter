@@ -13,6 +13,7 @@ import colorsys
 from timeit import default_timer as timer
 
 import numpy as np
+import matplotlib.path as mplPath
 from keras import backend as K
 from keras.models import load_model
 from keras.layers import Input
@@ -23,11 +24,13 @@ from yolo3.utils import letterbox_image
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 from keras.utils import multi_gpu_model
-gpu_num=1
+gpu_num = 1
+
 
 class YOLO(object):
     def __init__(self):
-        self.model_path = 'model_data/yolo.h5' # model path or trained weights path
+        # model path or trained weights path
+        self.model_path = 'model_data/yolo.h5'
         self.anchors_path = 'model_data/yolo_anchors.txt'
         self.classes_path = 'model_data/coco_classes.txt'
         self.score = 0.3
@@ -35,7 +38,7 @@ class YOLO(object):
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
         self.sess = K.get_session()
-        self.model_image_size = (416, 416) # fixed size or (None, None), hw
+        self.model_image_size = (416, 416)  # fixed size or (None, None), hw
         self.boxes, self.scores, self.classes = self.generate()
 
     def _get_class(self):
@@ -93,11 +96,6 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def check_in_box(self, point, box):
-        x, y = point
-        (x1, y1), (x2, y2) = box
-        return x1 < x < x2 and y1 < y < y2
-
     def detect_image(self, image, forbid_box=None):
         start = timer()
 
@@ -143,11 +141,7 @@ class YOLO(object):
         font_cn = ImageFont.truetype(font='font/asl.otf',
                                   size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
 
-        # 设置禁区
         draw = ImageDraw.Draw(image)
-        if forbid_box:
-            draw.rectangle([forbid_box[0], forbid_box[1]], outline=(0, 0, 255))
-
         forbid_total, video_total = 0, 0
         for i, c in reversed(list(enumerate(out_classes))):
             score = out_scores[i]
@@ -171,7 +165,7 @@ class YOLO(object):
             # 判断人是否在禁区
             b_center = (int((left+right)/2), bottom)
             color = self.colors[c]
-            if forbid_box is not None and self.check_in_box(b_center, forbid_box):
+            if forbid_box is not None and forbid_box.contains_point(b_center):
                 color = (0, 0, 255)
                 forbid_total += 1
 
@@ -211,7 +205,8 @@ class YOLO(object):
         self.sess.close()
 
 
-def detect_video(yolo, video_path, output_path=0, forbid_box=None):
+def detect_video(yolo, video_path, output_path=0, start=0, end=0,
+                 forbid_box=None):
     vid = cv2.VideoCapture(video_path)
     if not vid.isOpened():
         raise IOError("Couldn't open webcam or video")
@@ -226,6 +221,10 @@ def detect_video(yolo, video_path, output_path=0, forbid_box=None):
         print("!!! TYPE:", type(output_path), type(video_FourCC), type(video_fps), type(video_size))
         out = cv2.VideoWriter(output_path, out_fourcc, video_fps, video_size)
 
+    forbid_box_path = None
+    if forbid_box is not None:
+        forbid_box_path = mplPath.Path(np.array(forbid_box))
+
     accum_time = 0
     curr_fps = 0
     fps = "FPS: ??"
@@ -238,11 +237,7 @@ def detect_video(yolo, video_path, output_path=0, forbid_box=None):
         msec = int(vid.get(cv2.CAP_PROP_POS_MSEC))
         print('当前时间进度：%.2f秒' % (msec/1000))
         image = Image.fromarray(frame)
-        if forbid_box is None:
-            h, w = image.height, image.width
-            forbid_box = ((int(w/3), int(h*3/4)), (int(w*2/3), h-30))
-
-        image = yolo.detect_image(image, forbid_box=forbid_box)
+        image = yolo.detect_image(image, forbid_box=forbid_box_path)
         result = np.asarray(image)
         curr_time = timer()
         exec_time = curr_time - prev_time
@@ -254,7 +249,13 @@ def detect_video(yolo, video_path, output_path=0, forbid_box=None):
             fps = "FPS: " + str(curr_fps)
             curr_fps = 0
 
-        cv2.putText(result, text=fps, org=(3, 15), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+        # 设置禁区
+        if forbid_box is not None:
+            cv2.polylines(result, forbid_box, isColosed=True,
+                          color=(0, 0, 255), thickness=2)
+
+        cv2.putText(result, text=fps, org=(3, 15),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.50, color=(255, 0, 0), thickness=2)
         height, width = result.shape[:2]
         cv2.putText(result, 'DeeAo AI Team', (width-250, height-12),
@@ -275,14 +276,14 @@ def detect_img(yolo):
         img = input('Input image filename:')
         try:
             image = Image.open(img)
-        except:
-            print('Open Error! Try again!')
+        except Exception as e:
+            print('Open Error: %s! Try again!' % str(e))
             continue
         else:
             r_image = yolo.detect_image(image)
             r_image.show()
-    yolo.close_session()
 
+    yolo.close_session()
 
 
 if __name__ == '__main__':
