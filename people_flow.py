@@ -219,7 +219,8 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
 
     forbid_box_path = None
     if forbid_box is not None:
-        forbid_box_path = mplPath.Path(np.array(forbid_box))
+        forbid_box = np.array(forbid_box)
+        forbid_box_path = mplPath.Path(forbid_box)
 
     accum_time = 0
     curr_fps = 0
