@@ -13,6 +13,8 @@ class Video:
         Example:
             python3 flow.py simple --video-path ../f0662804860a3dfa5774b4b0067a950c.mp4 --output-path out.avi --start 10 --end 25 --score_threshold=0.3
         """
+        start, end = int(start), int(end)
+        score_threshold = float(score_threshold)
         detect_video(YOLO(), video_path, output_path, start=start, end=end,
                      score_threshold=score_threshold)
 
@@ -22,6 +24,8 @@ class Video:
         Args:
             forbid_box: 禁区设置，格式：x1,y1;x2,y2;x3,y3;x4,y4
         """
+        start, end = int(start), int(end)
+        score_threshold = float(score_threshold)
         if forbid_box is not None:
             forbid_box = [b.split(',') for b in forbid_box.split(';')]
 
