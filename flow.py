@@ -9,7 +9,6 @@ class Video:
         """视频识别接口
         Args:
             forbid_box: 禁区设置，格式：x1,y1;x2,y2;x3,y3;x4,y4
-
         Example:
             python3 flow.py simple --video-path ../f0662804860a3dfa5774b4b0067a950c.mp4 --output-path out.avi --start 10 --end 25 --score_threshold=0.3
         """
@@ -23,6 +22,8 @@ class Video:
         """视频识别接口：禁区识别
         Args:
             forbid_box: 禁区设置，格式：x1,y1;x2,y2;x3,y3;x4,y4
+        Example:
+            python3 flow.py forbidden --video-path ../f0662804860a3dfa5774b4b0067a950c.mp4 --output-path out.avi --start 15 --end 16 --score_threshold=0.05 --forbid_box="170,640;335,705"
         """
         start, end = int(start), int(end)
         score_threshold = float(score_threshold)
