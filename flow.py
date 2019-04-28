@@ -28,6 +28,7 @@ class Video:
         score_threshold = float(score_threshold)
         if forbid_box is not None:
             forbid_box = [b.split(',') for b in forbid_box.split(';')]
+            forbid_box = [[int(x), int(y)] for x, y in forbid_box]
             if len(forbid_box) == 2:     # 左上角和右下角
                 [x1, y1], [x2, y2] = forbid_box
                 forbid_box = [forbid_box[0], [x2, y1], forbid_box[1], [x1, y2]]
