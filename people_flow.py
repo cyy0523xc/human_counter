@@ -255,7 +255,7 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
 
         # 设置禁区
         if forbid_box is not None:
-            cv2.polylines(result, forbid_box, isColosed=True,
+            cv2.polylines(result, forbid_box, isClosed=True,
                           color=(0, 0, 255), thickness=2)
 
         cv2.putText(result, text=fps, org=(3, 15),
