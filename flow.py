@@ -32,6 +32,7 @@ class Video:
                 [x1, y1], [x2, y2] = forbid_box
                 forbid_box = [forbid_box[0], [x2, y1], forbid_box[1], [x1, y2]]
 
+        print(forbid_box)
         model = YOLO(score_threshold=score_threshold)
         detect_video(model, video_path, output_path, start=start, end=end,
                      forbid_box=forbid_box)
