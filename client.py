@@ -41,6 +41,28 @@ class Detect:
         print(forbid_box)
         model = YOLO(score_threshold=score_threshold)
         detect_video(model, video_path, output_path, start=start, end=end,
+                     forbid_box=[forbid_box])
+
+    def forbidden_multi(self, video_path, output_path, start=0, end=0,
+                        score_threshold=0.3, forbid_box=None):
+        """视频识别接口：多禁区识别
+        Args:
+            forbid_box: 禁区设置，格式：x1,y1;x2,y2;x3,y3;x4,y4
+        Example:
+            python3 client.py forbidden_multi --video-path ../越界检测.mp4 \
+                --output-path out.avi --start 15 --end 16 --score_threshold=0.05 \
+                --forbid_box="0,558;93,543;222,480;290,375;255,360;0,487|540,412;540,520;430,479;355,382;420,372"
+        """
+        start, end = int(start), int(end)
+        score_threshold = float(score_threshold)
+        if forbid_box is not None:
+            forbid_box = [[[int(x) for x in b.split(',')]
+                           for b in s.split(';')]
+                          for s in forbid_box.split('|')]
+
+        print(forbid_box)
+        model = YOLO(score_threshold=score_threshold)
+        detect_video(model, video_path, output_path, start=start, end=end,
                      forbid_box=forbid_box)
 
 

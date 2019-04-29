@@ -96,6 +96,17 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
+    def check_in_boxes(self, forbid_box, point):
+        if forbid_box is None:
+            return False
+
+        for b in forbid_box:
+            is_in = b.contains_point(point)
+            if is_in:
+                return True
+
+        return False
+
     def detect_image(self, image, forbid_box=None):
         start = timer()
 
@@ -161,7 +172,7 @@ class YOLO(object):
             # 判断人是否在禁区
             b_center = (int((left+right)/2), bottom)
             color = self.colors[c]
-            if forbid_box is not None and forbid_box.contains_point(b_center):
+            if self.check_in_boxes(forbid_box, b_center):
                 color = (0, 0, 255)
                 forbid_total += 1
 
@@ -219,8 +230,8 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
 
     forbid_box_path = None
     if forbid_box is not None:
-        forbid_box = np.array(forbid_box)
-        forbid_box_path = mplPath.Path(forbid_box)
+        forbid_box = [np.array(b) for b in forbid_box]
+        forbid_box_path = [mplPath.Path(b) for b in forbid_box]
 
     accum_time = 0
     curr_fps = 0
@@ -256,8 +267,9 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
 
         # 设置禁区
         if forbid_box is not None:
-            cv2.polylines(result, [forbid_box], 1, color=(0, 0, 255),
-                          thickness=2)
+            for b in forbid_box:
+                cv2.polylines(result, [b], 1, color=(0, 0, 255),
+                              thickness=2)
 
         cv2.putText(result, text=fps, org=(3, 15),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
