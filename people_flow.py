@@ -44,8 +44,9 @@ class YOLO(object):
         self.iou = iou_threshold
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
-        # self.sess = K.get_session()
         self.sess = get_session()
+        K.set_session(self.sess)
+        self.sess = K.get_session()
         self.model_image_size = (416, 416)  # fixed size or (None, None), hw
         self.boxes, self.scores, self.classes = self.generate()
 
