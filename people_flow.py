@@ -278,17 +278,10 @@ def detect_video(yolo, video_path, output_path=0, start=0, end=0,
     yolo.close_session()
 
 
-def detect_img(yolo):
-    while True:
-        img = input('Input image filename:')
-        try:
-            image = Image.open(img)
-        except Exception as e:
-            print('Open Error: %s! Try again!' % str(e))
-            continue
-        else:
-            r_image = yolo.detect_image(image)
-            r_image.show()
+def detect_img(yolo, image_path):
+    image = Image.open(image_path)
+    r_image = yolo.detect_image(image)
+    r_image.show()
 
     yolo.close_session()
 

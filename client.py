@@ -1,16 +1,20 @@
 import fire
 from people_flow import YOLO
-from people_flow import detect_video
+from people_flow import detect_video, detect_img
 
 
-class Video:
-    def simple(self, video_path, output_path, start=0, end=0,
+class Detect:
+    def image(self, image_path, score_threshold=0.3):
+        model = YOLO(score_threshold=score_threshold)
+        detect_img(model, image_path)
+
+    def video(self, video_path, output_path, start=0, end=0,
                score_threshold=0.3):
         """视频识别接口
         Args:
             forbid_box: 禁区设置，格式：x1,y1;x2,y2;x3,y3;x4,y4
         Example:
-            python3 flow.py simple --video-path ../f0662804860a3dfa5774b4b0067a950c.mp4 --output-path out.avi --start 10 --end 25 --score_threshold=0.3
+            python3 client.py video --video-path ../f0662804860a3dfa5774b4b0067a950c.mp4 --output-path out.avi --start 10 --end 25 --score_threshold=0.3
         """
         start, end = int(start), int(end)
         score_threshold = float(score_threshold)
@@ -23,7 +27,7 @@ class Video:
         Args:
             forbid_box: 禁区设置，格式：x1,y1;x2,y2;x3,y3;x4,y4
         Example:
-            python3 flow.py forbidden --video-path ../f0662804860a3dfa5774b4b0067a950c.mp4 --output-path out.avi --start 15 --end 16 --score_threshold=0.05 --forbid_box="170,640;335,705"
+            python3 client.py forbidden --video-path ../f0662804860a3dfa5774b4b0067a950c.mp4 --output-path out.avi --start 15 --end 16 --score_threshold=0.05 --forbid_box="170,640;335,705"
         """
         start, end = int(start), int(end)
         score_threshold = float(score_threshold)
@@ -41,4 +45,4 @@ class Video:
 
 
 if __name__ == '__main__':
-    fire.Fire(Video)
+    fire.Fire(Detect)
